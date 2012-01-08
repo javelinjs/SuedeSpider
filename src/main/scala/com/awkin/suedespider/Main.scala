@@ -17,7 +17,7 @@ object Main {
         // mongodb settings
         val mongoConn = MongoConnection()
 
-        val feeds = Source.fromFile("config/data/feeds.txt")
+        val feeds = Source.fromFile(Config.feedFile)
                                 .getLines.foldLeft(Set[String]()) { 
                                     _ ++ Set(_) 
                                 }

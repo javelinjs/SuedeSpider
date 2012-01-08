@@ -2,4 +2,4 @@
 #http://feeds.feedburner.com/solidot
 #http://feeds.feedburner.com/googlechinablog/hESp
 http://feed.williamlong.info/
-#http://www.guokr.com/rss/
+http://www.guokr.com/rss/

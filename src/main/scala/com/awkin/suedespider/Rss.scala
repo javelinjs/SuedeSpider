@@ -17,9 +17,12 @@ class Rss(val rss: Elem) {
     def channel_link = (channelNode \ "link").text
     def channel_desc = (channelNode \ "description").text
     def buildFreq = 0.5
-    def items(lastBuild: Date = new Date(0)) = {
+
+    //def items(lastBuild: Date = new Date(0)) = {
+    def items: List[RssItem] = {
         (List[RssItem]() /: (channelNode \ "item")) { (list, item) =>
             val pubDate = parseDate((item \ "pubDate").text)
+            /*
             if (pubDate after lastBuild) {
                 val title = (item \ "title").text
                 val link = (item \ "link").text
@@ -28,7 +31,12 @@ class Rss(val rss: Elem) {
                 list ::: List(RssItem(title, link, desc, content, pubDate))
             } else {
                 list
-            }
+            } */
+            val title = (item \ "title").text
+            val link = (item \ "link").text
+            val desc = (item \ "description").text
+            val content = (item \ "content").text
+            list ::: List(RssItem(title, link, desc, content, pubDate))
         }
     }
 
