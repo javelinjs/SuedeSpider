@@ -8,11 +8,15 @@ import java.util.TimeZone
 import scala.xml._
 
 class Rss(val rss: Elem) {
-    val dformat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
-    dformat setTimeZone TimeZone.getTimeZone("+0800")
     val channelNode = rss \ "channel"
 
-    def lastBuildDate = parseDate((channelNode \ "lastBuildDate").text)
+    def lastBuildDate = {
+        val lastBuildDateStr =  (channelNode \ "lastBuildDate").text
+        val dateStr = 
+            if (lastBuildDateStr.length > 0) lastBuildDateStr
+            else (channelNode \ "pubDate").text
+        parseDate(dateStr)
+    }
     def channel_title = (channelNode \ "title").text
     def channel_link = (channelNode \ "link").text
     def channel_desc = (channelNode \ "description").text
@@ -22,16 +26,6 @@ class Rss(val rss: Elem) {
     def items: List[RssItem] = {
         (List[RssItem]() /: (channelNode \ "item")) { (list, item) =>
             val pubDate = parseDate((item \ "pubDate").text)
-            /*
-            if (pubDate after lastBuild) {
-                val title = (item \ "title").text
-                val link = (item \ "link").text
-                val desc = (item \ "description").text
-                val content = (item \ "content").text
-                list ::: List(RssItem(title, link, desc, content, pubDate))
-            } else {
-                list
-            } */
             val title = (item \ "title").text
             val link = (item \ "link").text
             val desc = (item \ "description").text
@@ -41,10 +35,26 @@ class Rss(val rss: Elem) {
     }
 
     private def parseDate(dateStr: String): Date = {
+        val dformat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
+        dformat setTimeZone TimeZone.getTimeZone("+0800")
         try {
             dformat parse dateStr
         } catch {
-            case _ => new Date(0)
+            case _ => 
+            try {
+                val sformat = new SimpleDateFormat("yyyy HH:mm:ss z", Locale.US)
+                //获取datestr中最后三个元素组成简化版的date
+                val len = dateStr.length
+                val array = dateStr.split(" ")
+                val newstr = "%s %s %s".format(array(len-1), array(len-2), array(len-3))
+                sformat parse newstr
+            } catch {
+                case _ =>
+                    /* TODO: WARNING 
+                    println("Fail to parse date %s for [%s], set to current time".format(
+                                dateStr, channel_link)) */
+                    new Date()
+            }
         }
     }
 }
