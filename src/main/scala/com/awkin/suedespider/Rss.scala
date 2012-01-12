@@ -34,11 +34,11 @@ class Rss(val rss: Elem) {
         }
     }
 
-    private def parseDate(dateStr: String): Date = {
+    private def parseDate(dateStr: String): Option[Date] = {
         val dformat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
         dformat setTimeZone TimeZone.getTimeZone("+0800")
         try {
-            dformat parse dateStr
+            Some(dformat.parse(dateStr))
         } catch {
             case _ => 
             try {
@@ -47,13 +47,13 @@ class Rss(val rss: Elem) {
                 val len = dateStr.length
                 val array = dateStr.split(" ")
                 val newstr = "%s %s %s".format(array(len-1), array(len-2), array(len-3))
-                sformat parse newstr
+                Some(sformat.parse(newstr))
             } catch {
                 case _ =>
                     /* TODO: WARNING 
                     println("Fail to parse date %s for [%s], set to current time".format(
                                 dateStr, channel_link)) */
-                    new Date()
+                    None
             }
         }
     }
@@ -61,12 +61,12 @@ class Rss(val rss: Elem) {
 
 class RssItem(val title: String, val link: String, 
                 val desc: String, val content: String,
-                val pubDate: Date) {
+                val pubDate: Option[Date]) {
 }
 object RssItem {
     def apply(title: String, link: String, 
                 desc: String, content: String,
-                pubDate: Date) = {
+                pubDate: Option[Date]) = {
         new RssItem(title, link, desc, content, pubDate)
     }
 }

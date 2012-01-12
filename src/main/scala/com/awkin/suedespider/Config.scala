@@ -17,7 +17,7 @@ class Config private {
     val dbDef: String = "awkin"
     /* how many seconds the Alarm check for new channel to crawl */
     val alarmCheckIntervalDef: Int = 60
-    val maxAlarmCheckIntervalDef: Int = 86400 //One day
+    val alarmCheckIntervalMaxDef: Int = 86400 //One day
 }
 
 object Config {
@@ -36,8 +36,8 @@ object Config {
         conf.pair.optString("fail_out_file", conf.failOutFileDef)
     def alarmCheckInterval = 
         conf.pair.optInt("alarm_check_interval", conf.alarmCheckIntervalDef)
-    def maxAlarmCheckInterval = 
-        conf.pair.optInt("alarm_check_interval_max", conf.maxAlarmCheckIntervalDef)
+    def alarmCheckIntervalMax = 
+        conf.pair.optInt("alarm_check_interval_max", conf.alarmCheckIntervalMaxDef)
 
     def readConf() {
         try {

@@ -43,19 +43,46 @@ class Spider extends Actor {
 
             //channel related
             val channelObj = MongoDBObject("link"->rss.channel_link)
-            val channelInsLast = channelColl.findOne(channelObj, 
+            val channelInsHistory = channelColl.findOne(channelObj, 
                                         MongoDBObject("lastBuildDate"->1))
-            val lastBuildDate = 
-                channelInsLast.get("lastBuildDate").asInstanceOf[Date]
-            // update the channel
-            val channelInsNew = channelColl.findAndModify(channelObj, 
+
+            val (channelInsNew: DBObject, historyBuildDate: Date,
+                    rssChannelDoNotContainsLastBuildDate: Boolean) = 
+                if (channelInsHistory == None) {
+                    //new channel
+                    // if no lastBuildDate in rss, then set to current time
+                    val lastBuild: Date = 
+                        rss.lastBuildDate.getOrElse(new Date())
+                    val ins = channelColl.findAndModify(channelObj, 
+                                MongoDBObject("lastBuildDate"->1),
+                                MongoDBObject(), false,
+                                $set("title"->rss.channel_title,
+                                        "link"->rss.channel_link,
+                                        "desc"->rss.channel_desc,
+                                        "lastBuildDate"->lastBuild,
+                                        "buildFreq"->rss.buildFreq), 
+                                true, true)
+                    (ins.get, lastBuild, false)
+                } else {
+                    val historyBuild: Date = 
+                        channelInsHistory.get("lastBuildDate").asInstanceOf[Date]
+                    // if no lastBuildDate in rss, then don't change it
+                    val lastBuild: Date = 
+                        rss.lastBuildDate.getOrElse(historyBuild)
+
+                    val ins = channelColl.findAndModify(channelObj, 
                                 MongoDBObject("lastBuildDate"->1),
                                 MongoDBObject(), false,
                                 $set("title"->rss.channel_title,
                                         "desc"->rss.channel_desc,
-                                        "lastBuildDate"->rss.lastBuildDate,
+                                        "lastBuildDate"->lastBuild,
                                         "buildFreq"->rss.buildFreq), 
                                 true, true)
+                    val noDate = 
+                        if (historyBuild equals lastBuild) true
+                        else false
+                    (ins.get, historyBuild, noDate)
+                }
 
             //items related
             val items = rss.items
@@ -63,13 +90,14 @@ class Spider extends Actor {
             (false /: items) { (alreadyUpdated: Boolean, item: RssItem) => 
                 //check whether the item is already in db
                 val (needSave, emptyDate) = 
-                        needSave_emptyDate(item, lastBuildDate, mongoConn)
+                        needSave_emptyDate(item, historyBuildDate, mongoConn)
                 if (needSave) {
                     val pubDate: Date = 
                         if (emptyDate) {
-                            channelInsNew.get("lastBuildDate").asInstanceOf[Date]
+                            // use current time
+                            new Date()
                         } else {
-                            item.pubDate
+                            item.pubDate.get
                         }
                     val itemObj = 
                             MongoDBObject(
@@ -85,15 +113,37 @@ class Spider extends Actor {
                 if (!alreadyUpdated && needSave) true else alreadyUpdated
             }
 
-            if (updated) println("[Spider]" + url + " changed")
+            val channelLastBuildDate: Date = 
+            if (updated) {
+                println("[Spider]" + url + " changed")
+                /* rss do not contain the "lastBuildDate" setting,
+                   we update the channel's lastBuildDate to current time */
+                val lastBuildDate = 
+                    channelInsNew.get("lastBuildDate").asInstanceOf[Date]
+
+                val updatedDate = 
+                    if (rssChannelDoNotContainsLastBuildDate) {
+                        val newDate = new Date()
+                        channelColl.update(
+                            MongoDBObject("_id"->channelInsNew.get("_id")), 
+                                            $set("lastBuildDate"->newDate))
+                        newDate
+                    } else {
+                        lastBuildDate
+                    }
+                updatedDate
+            } else {
+                historyBuildDate
+            }
+
             /* return whether this url has been updated */
-            (updated, lastBuildDate)
+            (updated, channelLastBuildDate)
             //XML save (rss.channel_title + ".xml", xml, "UTF-8")
         } catch {
             case _ => 
                 val content = "[Spider] Fail to crawl from %s".format(url)
                 println(content)
-                /* record the failure */
+                //record the failure
                 val writer = new FileWriter(Config.failOutFile, true)
                 writer write content
                 writer.close
@@ -109,8 +159,8 @@ class Spider extends Actor {
                                     conn: MongoConnection): 
                                 (Boolean, Boolean) = {
 
-        val newItem: Boolean = item.pubDate after lastBuildDate
-        val emptyDate: Boolean = item.pubDate.equals(new Date(0))
+        val emptyDate: Boolean = (item.pubDate == None)
+        val newItem: Boolean = item.pubDate.getOrElse(new Date(0)) after lastBuildDate
         // connection
         val channelColl = conn(Config.db)("channel")
         val itemColl = conn(Config.db)("item")
