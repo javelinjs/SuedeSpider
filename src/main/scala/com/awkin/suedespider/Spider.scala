@@ -74,7 +74,7 @@ class Spider extends Actor {
                                         "lastBuildDate"->lastBuild,
                                         "buildFreq"->rss.buildFreq), 
                                 true, true)
-                    (ins.get, lastBuild, false)
+                    (ins.get, new Date(0), false)
                 } else {
                     val historyBuild: Date = 
                         channelInsHistory.get("lastBuildDate").asInstanceOf[Date]
@@ -152,9 +152,10 @@ class Spider extends Actor {
             (updated, channelLastBuildDate)
             //XML save (rss.channel_title + ".xml", xml, "UTF-8")
         } catch {
-            case _ => 
-                val content = "[Spider] Fail to crawl from %s".format(url)
-                logger.info(content)
+            case ex => 
+                logger.error(ex.getMessage)
+                val content = "Fail to crawl from %s".format(url)
+                logger.warn(content)
                 //record the failure
                 val writer = new FileWriter(Config.failOutFile, true)
                 writer write content
@@ -173,6 +174,11 @@ class Spider extends Actor {
 
         val emptyDate: Boolean = (item.pubDate == None)
         val newItem: Boolean = item.pubDate.getOrElse(new Date(0)) after lastBuildDate
+        /*
+        println("[needSave_emptyDate] pubDate: " + item.pubDate.getOrElse(new Date(0)))
+        println("[needSave_emptyDate] lastBuildDate: " + lastBuildDate)
+        println("[needSave_emptyDate] newItem: " + newItem)
+        */
         // connection
         val channelColl = conn(Config.db)("channel")
         val itemColl = conn(Config.db)("item")

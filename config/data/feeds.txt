@@ -1,6 +1,6 @@
-#http://www.36kr.com/feed/
+http://www.36kr.com/feed/
 #http://feeds.feedburner.com/solidot
 #http://feeds.feedburner.com/googlechinablog/hESp
 http://feed.williamlong.info/
 http://www.guokr.com/rss/
-http://feed.biaodianfu.com/
+#http://feed.biaodianfu.com/
