@@ -3,3 +3,4 @@
 #http://feeds.feedburner.com/googlechinablog/hESp
 http://feed.williamlong.info/
 http://www.guokr.com/rss/
+http://feed.biaodianfu.com/

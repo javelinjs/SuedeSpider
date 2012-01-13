@@ -4,6 +4,14 @@ import java.net.URL
 import java.util.Date
 import java.io._
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.joran.JoranConfigurator
+import ch.qos.logback.core.joran.spi.JoranException
+import ch.qos.logback.core.util.StatusPrinter
+
 import scala.io.Source
 import scala.xml._
 import scala.actors._
@@ -13,16 +21,20 @@ import com.mongodb.casbah.MongoConnection
 
 class Spider extends Actor {
 
+    val logger: Logger = LoggerFactory.getLogger(classOf[Spider])
+
     def act() {
         //Thread sleep 4000
         while (true) {
             receive {
                 case (caller : Actor, url : String, idx : Int) =>
-                    println("[Spider] Ready to crawl " + url)
+                    logger.info("Ready to crawl {}", url)
+
                     val (updated: Boolean, lastBuildDate: Date) = crawlRss(url)
                     /* reply to the Alarm */
                     caller ! (idx, updated, lastBuildDate)
-                case _ => println("[Spider] WARING: Spider receive invalid msg")
+                case _ => 
+                    logger.warn("Spider receive invalid msg")
             }
         }
     }
@@ -32,7 +44,7 @@ class Spider extends Actor {
     */
     private def crawlRss(url: String): (Boolean, Date) = {
         try {
-            println("[Spider] Try to crawl from %s".format(url))
+            logger.info("Try to crawl from {}", url)
 
             val mongoConn = MongoConnection()
             val channelColl = mongoConn(Config.db)("channel")
@@ -115,7 +127,7 @@ class Spider extends Actor {
 
             val channelLastBuildDate: Date = 
             if (updated) {
-                println("[Spider]" + url + " changed")
+                logger.info("{} changed", url)
                 /* rss do not contain the "lastBuildDate" setting,
                    we update the channel's lastBuildDate to current time */
                 val lastBuildDate = 
@@ -142,7 +154,7 @@ class Spider extends Actor {
         } catch {
             case _ => 
                 val content = "[Spider] Fail to crawl from %s".format(url)
-                println(content)
+                logger.info(content)
                 //record the failure
                 val writer = new FileWriter(Config.failOutFile, true)
                 writer write content
@@ -172,7 +184,12 @@ class Spider extends Actor {
                     case true =>
                         val found = 
                             if (item.link.length > 0) {
-                                val cond = MongoDBObject("link"->item.link)
+                                val day = new Date()   
+                                val oneDayBefore = (day.getTime()/1000) - 60*60*24
+                                day setTime oneDayBefore*1000
+
+                                val cond = MongoDBObject("link"->item.link) ++ 
+                                                ("pubDate" $gt day)
                                 itemColl.findOne(cond, MongoDBObject("_id"->1))
                             } else if (item.title.length > 0) {
                                 val cond = MongoDBObject("title"->item.title)
