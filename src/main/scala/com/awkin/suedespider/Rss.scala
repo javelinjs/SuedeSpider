@@ -8,7 +8,7 @@ import java.util.TimeZone
 import scala.xml._
 
 class Rss(val rss: Elem) {
-    val channelNode = rss \ "channel"
+    val channelNode = rss \\ "channel"
 
     def lastBuildDate = {
         val lastBuildDateStr =  (channelNode \ "lastBuildDate").text
@@ -24,12 +24,12 @@ class Rss(val rss: Elem) {
 
     //def items(lastBuild: Date = new Date(0)) = {
     def items: List[RssItem] = {
-        (List[RssItem]() /: (channelNode \ "item")) { (list, item) =>
+        (List[RssItem]() /: (channelNode \\ "item")) { (list, item) =>
             val pubDate = parseDate((item \ "pubDate").text)
             val title = (item \ "title").text
             val link = (item \ "link").text
             val desc = (item \ "description").text
-            val content = (item \ "content").text
+            val content = (item \ "encoded").text
             list ::: List(RssItem(title, link, desc, content, pubDate))
         }
     }

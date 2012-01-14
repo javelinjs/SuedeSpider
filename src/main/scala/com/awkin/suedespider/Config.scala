@@ -18,6 +18,7 @@ class Config private {
     /* how many seconds the Alarm check for new channel to crawl */
     val alarmCheckIntervalDef: Int = 60
     val alarmCheckIntervalMaxDef: Int = 86400 //One day
+    val alarmCheckFreqInitDef = 1 //used in Alarm:feedListInit 
 }
 
 object Config {
@@ -38,6 +39,8 @@ object Config {
         conf.pair.optInt("alarm_check_interval", conf.alarmCheckIntervalDef)
     def alarmCheckIntervalMax = 
         conf.pair.optInt("alarm_check_interval_max", conf.alarmCheckIntervalMaxDef)
+    def alarmCheckFreqInit = 
+        conf.pair.optInt("alarm_check_freq_init", conf.alarmCheckFreqInitDef)
 
     def readConf() {
         try {

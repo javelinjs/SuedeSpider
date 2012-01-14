@@ -158,7 +158,7 @@ class Spider extends Actor {
                 logger.warn(content)
                 //record the failure
                 val writer = new FileWriter(Config.failOutFile, true)
-                writer write content
+                writer write (content + "\n")
                 writer.close
                 (false, new Date(0))
         }
