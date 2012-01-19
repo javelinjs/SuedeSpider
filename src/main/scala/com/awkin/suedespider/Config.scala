@@ -15,6 +15,10 @@ class Config private {
     val feedFileDef: String = "config/data/feeds.txt"
     val failOutFileDef: String = "failToCrawl.txt"
     val dbDef: String = "awkin"
+    val dbHostDef: String = "localhost"
+    val dbPortDef: Int = 27017
+    val dbUserDef: String = ""
+    val dbPwdDef: String = ""
     /* how many seconds the Alarm check for new channel to crawl */
     val alarmCheckIntervalDef: Int = 60
     val alarmCheckIntervalMaxDef: Int = 86400 //One day
@@ -31,6 +35,14 @@ object Config {
         conf.pair.optInt("max_spider_wait_time", conf.maxSpiderWaitTimeDef)
     def db = 
         conf.pair.optString("db", conf.dbDef)
+    def dbHost = 
+        conf.pair.optString("db_host", conf.dbHostDef)
+    def dbPort = 
+        conf.pair.optInt("db_port", conf.dbPortDef)
+    def dbUser = 
+        conf.pair.optString("db_user", conf.dbUserDef)
+    def dbPwd = 
+        conf.pair.optString("db_pwd", conf.dbPwdDef)
     def feedFile = 
         conf.pair.optString("feed_file", conf.feedFileDef)
     def failOutFile = 

@@ -18,6 +18,7 @@ import scala.actors._
 import Actor._
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoConnection
+import com.mongodb.casbah.MongoDB
 
 class Spider extends Actor {
 
@@ -46,9 +47,13 @@ class Spider extends Actor {
         try {
             logger.info("Try to crawl from {}", url)
 
-            val mongoConn = MongoConnection()
-            val channelColl = mongoConn(Config.db)("channel")
-            val itemColl = mongoConn(Config.db)("item")
+            val mongoConn = MongoConnection(Config.dbHost, Config.dbPort)
+            val mongoDB = mongoConn(Config.db)
+            /* Auth */
+            mongoDB.authenticate(Config.dbUser, Config.dbPwd)
+
+            val channelColl = mongoDB("channel")
+            val itemColl = mongoDB("item")
 
             val xml = XML.load(new URL(url))
             val rss = new Rss(xml)
