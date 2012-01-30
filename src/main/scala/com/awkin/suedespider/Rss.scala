@@ -5,9 +5,19 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.joran.JoranConfigurator
+import ch.qos.logback.core.joran.spi.JoranException
+import ch.qos.logback.core.util.StatusPrinter
+
 import scala.xml._
 
 class Rss(val rss: Elem) {
+    val logger: Logger = LoggerFactory.getLogger(classOf[Rss])
+
     val channelNode = rss \\ "channel"
 
     def lastBuildDate = {
@@ -50,9 +60,8 @@ class Rss(val rss: Elem) {
                 Some(sformat.parse(newstr))
             } catch {
                 case _ =>
-                    /* TODO: WARNING 
-                    println("Fail to parse date %s for [%s], set to current time".format(
-                                dateStr, channel_link)) */
+                    logger.warn("fail to parse date %s for %s, set to current time".format(
+                                dateStr, channel_link)) 
                     None
             }
         }

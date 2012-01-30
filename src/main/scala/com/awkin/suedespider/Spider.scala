@@ -29,13 +29,16 @@ class Spider extends Actor {
         while (true) {
             receive {
                 case (caller : Actor, url : String, idx : Int) =>
-                    logger.info("Ready to crawl {}", url)
+                    logger.info("ready to crawl {}", url)
 
                     val (updated: Boolean, lastBuildDate: Date) = crawlRss(url)
                     /* reply to the Alarm */
                     caller ! (idx, updated, lastBuildDate)
+                case (caller : Actor, "quit") =>
+                    logger.info("ready to quit")
+                    exit
                 case _ => 
-                    logger.warn("Spider receive invalid msg")
+                    logger.warn("spider receive invalid msg")
             }
         }
     }
@@ -45,7 +48,7 @@ class Spider extends Actor {
     */
     private def crawlRss(url: String): (Boolean, Date) = {
         try {
-            logger.info("Try to crawl from {}", url)
+            logger.info("try to crawl from {}", url)
 
             val mongoConn = MongoConnection(Config.dbHost, Config.dbPort)
             val mongoDB = mongoConn(Config.db)
@@ -159,7 +162,7 @@ class Spider extends Actor {
         } catch {
             case ex => 
                 logger.error(ex.getMessage)
-                val content = "Fail to crawl from %s".format(url)
+                val content = "fail to crawl from %s".format(url)
                 logger.warn(content)
                 //record the failure
                 val writer = new FileWriter(Config.failOutFile, true)
@@ -197,7 +200,7 @@ class Spider extends Actor {
                             if (item.link.length > 0) {
                                 val day = new Date()   
                                 val oneDayBefore = (day.getTime()/1000) - 60*60*24
-                                day setTime oneDayBefore*1000
+                                day setTime oneDayBefore*1000*Config.dupItemCheckDay
 
                                 val cond = MongoDBObject("link"->item.link) ++ 
                                                 ("pubDate" $gt day)

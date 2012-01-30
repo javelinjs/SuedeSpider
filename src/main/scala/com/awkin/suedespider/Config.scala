@@ -24,6 +24,7 @@ class Config private {
     val maxSpiderWaitTimeDef: Int = 40
     val feedFileDef: String = "config/data/feeds.txt"
     val failOutFileDef: String = "failToCrawl.txt"
+    /* db config */
     val dbDef: String = "awkin"
     val dbHostDef: String = "localhost"
     val dbPortDef: Int = 27017
@@ -33,6 +34,10 @@ class Config private {
     val alarmCheckIntervalDef: Int = 60
     val alarmCheckIntervalMaxDef: Int = 86400 //One day
     val alarmCheckFreqInitDef = 1 //used in Alarm:feedListInit 
+    /* for how many days should test the duplicate items */
+    val dupItemCheckDayDef = 1
+    /* whether it is run as a daemon */
+    val runAsDaemonDef = true
 }
 
 object Config {
@@ -63,6 +68,10 @@ object Config {
         conf.pair.optInt("alarm_check_interval_max", conf.alarmCheckIntervalMaxDef)
     def alarmCheckFreqInit = 
         conf.pair.optInt("alarm_check_freq_init", conf.alarmCheckFreqInitDef)
+    def dupItemCheckDay = 
+        conf.pair.optInt("dup_item_check_day", conf.dupItemCheckDayDef)
+    def runAsDaemon = 
+        conf.pair.optBoolean("run_as_daemon", conf.runAsDaemonDef)
 
     def readConf(filename: Option[String] = None) {
         val confFile = filename.getOrElse(confFileDef)
@@ -96,8 +105,8 @@ object Config {
 }
 
 object isComment {
-    def apply(symbol: String) : Boolean = symbol(0) == '#'
-    def unapply(symbol: String) : Boolean = symbol(0) == '#'
+    def apply(symbol: String) : Boolean = (symbol == "" || symbol(0) == '#')
+    def unapply(symbol: String) : Boolean = (symbol == "" || symbol(0) == '#')
 }
 object notComment {
     def apply(symbol: String) : Boolean = !isComment.apply(symbol)
