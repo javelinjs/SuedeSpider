@@ -13,10 +13,12 @@ import ch.qos.logback.core.util.StatusPrinter
 import scala.actors._
 import Actor._
 import scala.io.Source
+import scala.io.Codec
 import scala.xml._
 
 object Main {
     def main(args: Array[String]) {
+        implicit val codec = Codec("UTF-8")
         val logger = LoggerFactory.getLogger("Main")
         /* first arg is the conf file path */
         val confFile =
@@ -39,7 +41,9 @@ object Main {
                 }
             }
          } catch {
-            case _ => Set[String]()
+            case ex => 
+                logger.error(ex.getMessage())
+                Set[String]()
          }
 
         val feedCount = feeds.count(_=>true)
