@@ -42,7 +42,9 @@ object Main {
             case _ => Set[String]()
          }
 
-        if (feeds.count(_=>true) == 0) {
+        val feedCount = feeds.count(_=>true)
+        logger.info("{} feed(s) to crawler", feedCount)
+        if (feedCount == 0) {
             logger.error("fail to read from {}", Config.feedFile)
             return
         }
