@@ -196,17 +196,19 @@ class Spider extends Actor {
             case false =>
                 emptyDate match {
                     case true =>
+                        /* how many days before should the duplicated items checked */
+                        val day = new Date()
+                        val nDayBefore = (day.getTime()/1000)-60*60*24*Config.dupItemCheckDay
+                        day setTime nDayBefore*1000
+
                         val found = 
                             if (item.link.length > 0) {
-                                val day = new Date()   
-                                val oneDayBefore = (day.getTime()/1000) - 60*60*24
-                                day setTime oneDayBefore*1000*Config.dupItemCheckDay
-
                                 val cond = MongoDBObject("link"->item.link) ++ 
                                                 ("pubDate" $gt day)
                                 itemColl.findOne(cond, MongoDBObject("_id"->1))
                             } else if (item.title.length > 0) {
-                                val cond = MongoDBObject("title"->item.title)
+                                val cond = MongoDBObject("title"->item.title) ++
+                                                ("pubDate" $gt day)
                                 itemColl.findOne(cond, MongoDBObject("_id"->1))
                             } else {
                                 Option()
