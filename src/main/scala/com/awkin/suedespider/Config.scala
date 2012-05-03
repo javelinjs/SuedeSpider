@@ -38,6 +38,8 @@ class Config private {
     val dupItemCheckDayDef = 1
     /* whether it is run as a daemon */
     val runAsDaemonDef = true
+    /* For feature: description max length*/
+    val descMaxLengthDef = 140
 }
 
 object Config {
@@ -72,6 +74,8 @@ object Config {
         conf.pair.optInt("dup_item_check_day", conf.dupItemCheckDayDef)
     def runAsDaemon = 
         conf.pair.optBoolean("run_as_daemon", conf.runAsDaemonDef)
+    def descMaxLength = 
+        conf.pair.optInt("desc_max_length", conf.descMaxLengthDef)
 
     def readConf(filename: Option[String] = None) {
         val confFile = filename.getOrElse(confFileDef)

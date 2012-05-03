@@ -20,6 +20,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoConnection
 import com.mongodb.casbah.MongoDB
 
+/* FIXME: trait DaemonActor extends Actor */
 class Spider extends Actor {
 
     val logger: Logger = LoggerFactory.getLogger(classOf[Spider])
@@ -57,6 +58,7 @@ class Spider extends Actor {
 
             val channelColl = mongoDB("channel")
             val itemColl = mongoDB("item")
+            val featureColl = mongoDB("feature")
 
             val xml = XML.load(new URL(url))
             val rss = new Rss(xml)
@@ -119,6 +121,7 @@ class Spider extends Actor {
                         } else {
                             item.pubDate.get
                         }
+                    //add new item
                     val itemObj = 
                             MongoDBObject(
                                 "channel"->channelInsNew.get("_id"),
@@ -128,6 +131,8 @@ class Spider extends Actor {
                                 "link"->item.link,
                                 "pubDate"->pubDate)
                     itemColl += itemObj
+                    //item features
+                    featureColl += FeatureExtractor(itemObj._id, item)
                 }
 
                 if (!alreadyUpdated && needSave) true else alreadyUpdated

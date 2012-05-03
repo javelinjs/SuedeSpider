@@ -60,8 +60,7 @@ class Rss(val rss: Elem) {
                 Some(sformat.parse(newstr))
             } catch {
                 case _ =>
-                    logger.warn("fail to parse date %s for %s, set to current time".format(
-                                dateStr, channel_link)) 
+                    logger.warn("fail to parse date %s for %s, set to current time".format(dateStr, channel_link)) 
                     None
             }
         }
