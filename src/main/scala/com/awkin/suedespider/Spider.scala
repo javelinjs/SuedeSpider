@@ -60,8 +60,15 @@ class Spider extends Actor {
             val itemColl = mongoDB("item")
             val featureColl = mongoDB("feature")
 
-            val xml = XML.load(new URL(url))
-            val rss = new Rss(xml)
+            val rss = 
+                url match {
+                    case crawlOriginalUrl() => 
+                        val xml = XML.load(new URL(crawlOriginalUrl(url)))
+                        new Rss(xml, true)
+                    case _ => 
+                        val xml = XML.load(new URL(url))
+                        new Rss(xml, false)
+                }
 
             //channel related
             val channelObj = MongoDBObject("link"->rss.channel_link)
@@ -228,5 +235,10 @@ class Spider extends Actor {
         }
         (needSave, emptyDate)
     }
+}
+
+object crawlOriginalUrl {
+    def apply(url : String) : String = url.substring(1, url.length)
+    def unapply(url : String) : Boolean = (url(0) == '+')
 }
 

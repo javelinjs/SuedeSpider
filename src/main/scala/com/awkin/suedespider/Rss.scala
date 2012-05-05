@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
+import java.net._;
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -13,12 +15,18 @@ import ch.qos.logback.classic.joran.JoranConfigurator
 import ch.qos.logback.core.joran.spi.JoranException
 import ch.qos.logback.core.util.StatusPrinter
 
+import de.l3s.boilerpipe.extractors.ArticleExtractor
+
 import scala.xml._
 
-class Rss(val rss: Elem) {
+class Rss(val rss: Elem, val crawlOriginalUrl: Boolean) {
     val logger: Logger = LoggerFactory.getLogger(classOf[Rss])
 
     val channelNode = rss \\ "channel"
+
+    def this (rss: Elem) {
+        this(rss, false)
+    }
 
     def lastBuildDate = {
         val lastBuildDateStr =  (channelNode \ "lastBuildDate").text
@@ -38,8 +46,18 @@ class Rss(val rss: Elem) {
             val pubDate = parseDate((item \ "pubDate").text)
             val title = (item \ "title").text
             val link = (item \ "link").text
-            val desc = (item \ "description").text
-            val content = (item \ "encoded").text
+            val descText = (item \ "description").text
+            val contentText = (item \ "encoded").text
+
+            val (desc, content) = 
+            if (!crawlOriginalUrl) {
+                (descText, contentText)
+            } else {
+                val oriUrl: URL = new URL(link);
+                (if (descText.length > contentText.length) descText else contentText, 
+                    ArticleExtractor.INSTANCE.getText(oriUrl))
+            }
+
             list ::: List(RssItem(title, link, desc, content, pubDate))
         }
     }
