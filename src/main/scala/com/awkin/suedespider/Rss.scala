@@ -22,6 +22,8 @@ import scala.xml._
 class Rss(val rss: Elem, val crawlOriginalUrl: Boolean) {
     val logger: Logger = LoggerFactory.getLogger(classOf[Rss])
 
+    //WARN: may not be thread safe
+    val articleExtractor = ArticleExtractor.INSTANCE
     val channelNode = rss \\ "channel"
 
     def this (rss: Elem) {
@@ -54,8 +56,10 @@ class Rss(val rss: Elem, val crawlOriginalUrl: Boolean) {
                 (descText, contentText)
             } else {
                 val oriUrl: URL = new URL(link);
-                (if (descText.length > contentText.length) descText else contentText, 
-                    ArticleExtractor.INSTANCE.getText(oriUrl))
+                (
+                    if (descText.length > contentText.length) descText else contentText, 
+                    articleExtractor.getText(oriUrl)
+                )
             }
 
             list ::: List(RssItem(title, link, desc, content, pubDate))
