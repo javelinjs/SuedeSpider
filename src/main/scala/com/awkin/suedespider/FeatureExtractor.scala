@@ -23,5 +23,5 @@ object FeatureExtractor {
         if (item.content.length == 0) item.desc.length
         else item.content.length
     }
-    def source(item: RssItem): String = item.link
+    def source(item: RssItem): String = item.source
 }

@@ -64,10 +64,10 @@ class Spider extends Actor {
                 url match {
                     case crawlOriginalUrl() => 
                         val xml = XML.load(new URL(crawlOriginalUrl(url)))
-                        new Rss(xml, true)
+                        new Rss(xml, crawlOriginalUrl(url), true)
                     case _ => 
                         val xml = XML.load(new URL(url))
-                        new Rss(xml, false)
+                        new Rss(xml, url, false)
                 }
 
             //channel related

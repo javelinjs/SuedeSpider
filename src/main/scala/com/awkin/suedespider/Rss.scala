@@ -19,15 +19,16 @@ import de.l3s.boilerpipe.extractors.ArticleExtractor
 
 import scala.xml._
 
-class Rss(val rss: Elem, val crawlOriginalUrl: Boolean) {
+class Rss(val rss: Elem, val channelSource: String, 
+            val crawlOriginalUrl: Boolean) {
     val logger: Logger = LoggerFactory.getLogger(classOf[Rss])
 
     //WARN: may not be thread safe
     val articleExtractor = ArticleExtractor.INSTANCE
     val channelNode = rss \\ "channel"
 
-    def this (rss: Elem) {
-        this(rss, false)
+    def this (rss: Elem, channelSource: String) {
+        this(rss, channelSource, false)
     }
 
     def lastBuildDate = {
@@ -62,7 +63,8 @@ class Rss(val rss: Elem, val crawlOriginalUrl: Boolean) {
                 )
             }
 
-            list ::: List(RssItem(title, link, desc, content, pubDate))
+            list ::: List(RssItem(title, link, desc, content, 
+                                    pubDate, channelSource))
         }
     }
 
@@ -91,12 +93,12 @@ class Rss(val rss: Elem, val crawlOriginalUrl: Boolean) {
 
 class RssItem(val title: String, val link: String, 
                 val desc: String, val content: String,
-                val pubDate: Option[Date]) {
+                val pubDate: Option[Date], val source: String) {
 }
 object RssItem {
     def apply(title: String, link: String, 
                 desc: String, content: String,
-                pubDate: Option[Date]) = {
-        new RssItem(title, link, desc, content, pubDate)
+                pubDate: Option[Date], source: String) = {
+        new RssItem(title, link, desc, content, pubDate, source)
     }
 }
