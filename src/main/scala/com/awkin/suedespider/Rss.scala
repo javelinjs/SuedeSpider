@@ -56,15 +56,15 @@ class Rss(val rss: Elem, val channelSource: String,
             if (!crawlOriginalUrl) {
                 (descText, contentText)
             } else {
-                val oriUrl: URL = new URL(link);
                 (
                     if (descText.length > contentText.length) descText else contentText, 
-                    articleExtractor.getText(oriUrl)
+                    ""
                 )
             }
 
             list ::: List(RssItem(title, link, desc, content, 
-                                    pubDate, channelSource))
+                                    pubDate, channelSource, 
+                                    crawlOriginalUrl))
         }
     }
 
@@ -92,13 +92,27 @@ class Rss(val rss: Elem, val channelSource: String,
 }
 
 class RssItem(val title: String, val link: String, 
-                val desc: String, val content: String,
-                val pubDate: Option[Date], val source: String) {
+                val desc: String, val tmpContent: String,
+                val pubDate: Option[Date], val source: String,
+                val crawlOriginalUrl: Boolean) {
+
+    val articleExtractor = ArticleExtractor.INSTANCE
+    def content = {
+        if (crawlOriginalUrl) {
+            val oriUrl: URL = new URL(link)
+            articleExtractor.getText(oriUrl)
+        } else {
+            tmpContent
+        }
+    }
 }
 object RssItem {
     def apply(title: String, link: String, 
                 desc: String, content: String,
-                pubDate: Option[Date], source: String) = {
-        new RssItem(title, link, desc, content, pubDate, source)
+                pubDate: Option[Date], source: String,
+                crawlOriginalUrl: Boolean) = {
+
+        new RssItem(title, link, desc, content, pubDate, 
+                    source, crawlOriginalUrl)
     }
 }
