@@ -5,7 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 
-import java.net._;
+import java.net._
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -45,27 +45,43 @@ class Rss(val rss: Elem, val channelSource: String,
 
     //def items(lastBuild: Date = new Date(0)) = {
     def items: List[RssItem] = {
-        (List[RssItem]() /: (channelNode \\ "item")) { (list, item) =>
-            val pubDate = parseDate((item \ "pubDate").text)
-            val title = (item \ "title").text
-            val link = (item \ "link").text
-            val descText = (item \ "description").text
-            val contentText = (item \ "encoded").text
+        val (itemList, _) = 
+        ((List[RssItem](), Set[String]()) /: (channelNode \\ "item")) { 
+        (list_linkSet, item) =>
+            val (list, linkSet) = list_linkSet
 
-            val (desc, content) = 
-            if (!crawlOriginalUrl) {
-                (descText, contentText)
-            } else {
+            val link = (item \ "link").text
+
+            linkSet.contains(link) match {
+            case true =>
+                //duplicated item
+                (list, linkSet)
+            case false =>
+                val pubDate = parseDate((item \ "pubDate").text)
+                val title = (item \ "title").text
+                val descText = (item \ "description").text
+                val contentText = (item \ "encoded").text
+
+                val (desc, content) = 
+                if (!crawlOriginalUrl) {
+                    (descText, contentText)
+                } else {
+                    (
+                        if (descText.length > contentText.length) descText 
+                        else contentText, 
+                        ""
+                    )
+                }
+
                 (
-                    if (descText.length > contentText.length) descText else contentText, 
-                    ""
+                list ::: List(RssItem(title, link, desc, content, 
+                                        pubDate, channelSource, 
+                                        crawlOriginalUrl)),
+                linkSet ++ Set[String](link)
                 )
             }
-
-            list ::: List(RssItem(title, link, desc, content, 
-                                    pubDate, channelSource, 
-                                    crawlOriginalUrl))
         }
+        itemList
     }
 
     private def parseDate(dateStr: String): Option[Date] = {

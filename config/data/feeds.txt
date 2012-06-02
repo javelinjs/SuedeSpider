@@ -1,11 +1,12 @@
 #http://www.36kr.com/feed/
 #http://feeds.feedburner.com/solidot
 #http://feeds.feedburner.com/googlechinablog/hESp
-http://feed.williamlong.info/
+#http://feed.williamlong.info/
 #http://www.guokr.com/rss/
 #http://feed.biaodianfu.com/
 #http://songshuhui.net/feed
 #新浪要闻
-+http://rss.sina.com.cn/news/marquee/ddt.xml
+#+http://rss.sina.com.cn/news/marquee/ddt.xml
 #新浪国内要闻
 #+http://rss.sina.com.cn/news/china/focus15.xml
++http://www.douban.com/feed/review/book

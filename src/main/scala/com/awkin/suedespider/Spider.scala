@@ -195,11 +195,6 @@ class Spider extends Actor {
 
         val emptyDate: Boolean = (item.pubDate == None)
         val newItem: Boolean = item.pubDate.getOrElse(new Date(0)) after lastBuildDate
-        /*
-        println("[needSave_emptyDate] pubDate: " + item.pubDate.getOrElse(new Date(0)))
-        println("[needSave_emptyDate] lastBuildDate: " + lastBuildDate)
-        println("[needSave_emptyDate] newItem: " + newItem)
-        */
         // connection
         val channelColl = conn(Config.db)("channel")
         val itemColl = conn(Config.db)("item")
