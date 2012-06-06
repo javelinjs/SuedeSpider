@@ -193,42 +193,46 @@ class Spider extends Actor {
                                     conn: MongoConnection): 
                                 (Boolean, Boolean) = {
 
+        /* newItem not use here, 
+         * according to some rss, they do not update lastBuildDate
+         */
         val emptyDate: Boolean = (item.pubDate == None)
         val newItem: Boolean = item.pubDate.getOrElse(new Date(0)) after lastBuildDate
         // connection
         val channelColl = conn(Config.db)("channel")
         val itemColl = conn(Config.db)("item")
 
-        val needSave: Boolean =
-        newItem match {
-            case false =>
-                emptyDate match {
-                    case true =>
-                        /* how many days before should the duplicated items checked */
-                        val day = new Date()
-                        val nDayBefore = (day.getTime()/1000)-60*60*24*Config.dupItemCheckDay
-                        day setTime nDayBefore*1000
+        val day = new Date()
+            emptyDate match {
+                case true => new Date()
+                case false => item.pubDate.get
+            }
 
-                        val found = 
-                            if (item.link.length > 0) {
-                                val cond = MongoDBObject("link"->item.link) ++ 
-                                                ("pubDate" $gt day)
-                                itemColl.findOne(cond, MongoDBObject("_id"->1))
-                            } else if (item.title.length > 0) {
-                                val cond = MongoDBObject("title"->item.title) ++
-                                                ("pubDate" $gt day)
-                                itemColl.findOne(cond, MongoDBObject("_id"->1))
-                            } else {
-                                Option()
-                            }
-                        found match {
-                            case None => true
-                            case _ => false
-                        }
-                    case false => false
-                }
-            case true => true
-        }
+        /* how many days before should the duplicated items checked */
+        val nDayBefore = (day.getTime()/1000)-60*60*24*Config.dupItemCheckDay
+        day setTime nDayBefore*1000
+
+        val found = 
+            if (item.link.length > 0) {
+                val cond = MongoDBObject("link"->item.link) ++ 
+                                ("pubDate" $gt day)
+
+                itemColl.findOne(cond, MongoDBObject("_id"->1))
+            } else if (item.title.length > 0) {
+                val cond = MongoDBObject("title"->item.title) ++
+                                ("pubDate" $gt day)
+                itemColl.findOne(cond, MongoDBObject("_id"->1))
+            } else {
+                Option()
+            }
+
+        logger.debug("find: {}", found.toString)
+
+        val needSave: Boolean =
+            found match {
+                case None => true
+                case _ => false
+            }
         (needSave, emptyDate)
     }
 }
